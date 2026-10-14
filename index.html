@@ -64,7 +64,8 @@
     if (!todos.length) {
       $list.innerHTML = '<li class="empty" style="justify-content:center">할 일이 없습니다 🎉</li>';
     }
-    todos.forEach(t => {
+    const ordered = todos.filter(t => !t.done).concat(todos.filter(t => t.done));
+    ordered.forEach(t => {
       const li = document.createElement('li');
       if (t.done) li.className = 'done';
 
