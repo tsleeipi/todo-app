@@ -29,6 +29,8 @@
   li .del:hover { color: #ef4444; }
   .footer { margin-top: 12px; font-size: 13px; color: #6b7280; display: flex; justify-content: space-between; align-items: center; }
   .footer button { background: none; color: #6b7280; font-size: 13px; text-decoration: underline; }
+  li.toggle { cursor: pointer; color: #6b7280; font-size: 13px; user-select: none; border-bottom: 0; }
+  li.toggle:hover { color: #1f2937; }
   .empty { text-align: center; color: #9ca3af; padding: 20px 0; }
 </style>
 </head>
@@ -48,8 +50,11 @@
 
 <script>
   const KEY = 'todos-v1';
+  const FOLD_KEY = 'todos-done-folded';
   let todos = [];
+  let folded = false;
   try { todos = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) {}
+  try { folded = localStorage.getItem(FOLD_KEY) === '1'; } catch (e) {}
 
   const $list = document.getElementById('list');
   const $count = document.getElementById('count');
@@ -64,8 +69,9 @@
     if (!todos.length) {
       $list.innerHTML = '<li class="empty" style="justify-content:center">할 일이 없습니다 🎉</li>';
     }
-    const ordered = todos.filter(t => !t.done).concat(todos.filter(t => t.done));
-    ordered.forEach(t => {
+    const active = todos.filter(t => !t.done);
+    const done = todos.filter(t => t.done);
+    const addItem = t => {
       const li = document.createElement('li');
       if (t.done) li.className = 'done';
 
@@ -85,7 +91,20 @@
 
       li.append(cb, span, del);
       $list.appendChild(li);
-    });
+    };
+    active.forEach(addItem);
+    if (done.length) {
+      const toggle = document.createElement('li');
+      toggle.className = 'toggle';
+      toggle.textContent = `${folded ? '▶' : '▼'} 완료 ${done.length}개`;
+      toggle.onclick = () => {
+        folded = !folded;
+        try { localStorage.setItem(FOLD_KEY, folded ? '1' : '0'); } catch (e) {}
+        render();
+      };
+      $list.appendChild(toggle);
+      if (!folded) done.forEach(addItem);
+    }
     const left = todos.filter(t => !t.done).length;
     $count.textContent = `남은 할 일 ${left}개 / 전체 ${todos.length}개`;
   }
